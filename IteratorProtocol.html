@@ -94,6 +94,6 @@ Symbol.iterator: https://valuefactory.tistory.com/279
 <script>
     console.clear();
     const a = [1,2];
-    // a[Symbol.iterator] = null; // error 발생
-    log([...a, ...[3,4], ...arr, ...set, ...map.keys()]);
+    // a[Symbol.iterator] = null; //이터러블이 아니게 되어 error 발생
+    log([...a, ...arr, ...set, ...map]);
 </script>
