@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>HTML 출력해보기 - 장바구니</title>
+    <script src="function.js"></script>
+  </head>
+  <body>
+    <div id="cart">
+
+    </div>
+    <script>
+      const products = [
+        { name: '반팔티', price: 15000, quantity: 1 },
+        { name: '긴팔티', price: 20000, quantity: 2 },
+        { name: '핸드폰케이스', price: 15000, quantity: 3 },
+        { name: '후드티', price: 30000, quantity: 4 },
+        { name: '바지', price: 25000, quantity: 5 },
+      ];
+    
+      const add = (a, b) => a + b;
+
+      // const sum = (f, iter) => go(
+      //   iter,  
+      //   map(f),
+      //   reduce(add)
+      // );
+
+      // log(sum(p => p.quantity, products));
+      // log(sum(p => p.price * p.quantity, products));
+
+      // const total_quantity = products => 
+      //   sum(p => p.quantity, products);
+
+      // const total_price = products => 
+      //   sum(p => p.price * p.quantity, products);
+
+    // curry 쌓아줄 경우
+      const sum = curry((f, iter) => go(
+        iter,
+        map(f),
+        reduce(add)
+      ));
+      // const total_quantity = products => sum(p => p.quantity)(products);
+      const total_quantity = sum(p => p.quantity);
+      
+      log(total_quantity(products));
+      // const total_price = products => sum(p => p.price * p.quantity)(products);
+      // const total_price = sum(p => p.price * p.quantity);
+
+    // 총 수량
+    // const total_quantity = products => go(products,
+    //   map(p => p.quantity),
+    //   reduce((a, b) => a + b));
+    
+    // const total_quantity = pipe(
+    //   map(p => p.quantity),
+    //   // reduce((a, b) => a + b)
+    //   reduce(add)
+    // );
+
+    // log(total_quantity(products));
+
+    //합산 금액
+    // const total_price = pipe(
+    //   map(p => p.price * p.quantity),
+    //   // reduce((a, b) => a + b)
+    //   reduce(add)
+    // );
+    </script>
+  </body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 출력해보기 - 장바구니</title>
+  <script src="function.js"></script>
+</head>
+<body>
+
+<div id="cart">
+</div>
+
+<script>
+  const products = [
+    {name: '반팔티', price: 15000, quantity: 1, is_selected: true},
+    {name: '긴팔티', price: 20000, quantity: 2, is_selected: false},
+    {name: '핸드폰케이스', price: 15000, quantity: 3, is_selected: true},
+    {name: '후드티', price: 30000, quantity: 4, is_selected: false},
+    {name: '바지', price: 25000, quantity: 5, is_selected: false}
+  ];
+
+  const add = (a, b) => a + b;
+
+  const sum = curry((f, iter) => go(
+    iter,
+    map(f),
+    reduce(add)
+  ));
+
+  const total_quantity = sum(p => p.quantity);
+  const total_price = sum(p => p.price * p.quantity);
+
+  //밑에 넣어주는 것
+  // ${go(
+  //     products,
+  //     map(p => `
+  //     <tr>
+  //       <td>${p.name}</td>
+  //       <td>${p.price}</td>
+  //       <td><input type="number" value="${p.quantity}"></td>
+  //       <td>${p.price * p.quantity}</td>
+  //     </tr>`
+  //     ),
+  //     // 위에 ...이 생긴 것은 map함수가 array를 return 했기 때문
+  //     // reduce를 통해 해결
+  //     reduce(add), 
+  //   )};
+
+  document.querySelector('#cart').innerHTML = `
+    <table>
+      <tr>
+        <th></th>
+        <th>상품 이름</th>
+        <th>가격</th>
+        <th>수량</th>
+        <th>총 가격</th>
+      </tr>
+      ${go(products, sum(p => `
+        <tr>
+          <td><input type="checkbox" ${p.is_selected ? 'checked' : ''}></td.
+          <td>${p.name}</td>
+          <td>${p.price}</td>
+          <td><input type="number" value="${p.quantity}"></td>
+          <td>${p.price * p.quantity}</td>
+        </tr>
+        `))}
+        
+      <tr>
+        <td colspan="2">합계</td>
+        <td>${total_quantity(filter(p => p.is_selected, products))}</td>
+        <td>${total_price(products)}</td>
+      </tr>
+    </table>
+  `;
+</script>
+
+</body>
+</html>
