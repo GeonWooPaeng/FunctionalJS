@@ -1,0 +1,146 @@
+<script src="function.js"></script>
+
+### map, filter 계열 함수들이 가지는 결합 법칙
+
+ - 사용하는 데이터가 무엇이든지
+ - 사용하는 보조 함수가 순수 함수라면 무엇이든지
+ - 아래와 같이 결합한다면 둘 다 결과가 같다. 
+
+[[mapping, mapping], [filtering, filtering], [mapping, mapping]]
+=
+[[mapping, filtering, mapping], [mapping, filtering, mapping]]
+
+
+## 결과를 만드는 함수 reduce, take
+## 연산의 시작점을 알리는 함수
+
+### reduce
+<script>
+  //배열이 아닌 값도 실행할 수 있는 join
+  const join = curry((sep = ',', iter) => 
+    reduce((a, b) => `${a}${sep}${b}`, iter)); 
+
+  // Object.entries를 iterator받게 하기
+  L.entries = function *(obj) {
+    for (const k in obj) yield [k, obj[k]];
+  };
+
+  //객체를 통해 queryStr을 얻는 함수
+  // const queryStr = obj => go(
+  //   obj,
+  //   Object.entries,
+  //   map(([k, v]) => `${k}=${v}`),
+  //   reduce((a, b) => `${a}&${b}`)
+  // );
+
+  const queryStr = pipe(
+    Object.entries,
+    a => (console.log(a), a),
+    map(([k, v]) => `${k}=${v}`),
+    // reduce((a, b) => `${a}&${b}`)
+    join('&')
+  );
+  log(queryStr({limit: 10, offset: 10, type: 'notice' }));
+
+  function *a() {
+    yield 10;
+    yield 11;
+    yield 12;
+    yield 13;
+  }
+
+  log(join(' - ', a()));
+</script>
+
+### take, find
+<script>
+  const users = [
+    { age: 32 },
+    { age: 31 },
+    { age: 37 },
+    { age: 28 },
+    { age: 25 },
+    { age: 29 },
+  ]
+
+  const find = curry((f, iter) => go(
+    iter,
+    // L.filter(a => (console.log(a), f(a))),
+    // a => (console.log(a), a),
+    L.filter(f),
+    take(1),
+    ([a]) => a));
+
+  log(find(u => u.age < 30, users));
+
+  go(users,
+    L.map(u => u.age),
+    find(n => n < 30),
+    log);
+</script>
+
+## L.map + take로 map 만들기
+<script>
+  L.map = curry(function *(f, iter) {
+    // iter = iter[Symbol.iterator]();
+    // let cur;
+    // while (!(cur = iter.next()).done) {
+    //   const a = cur.value;
+    //   yield f(a);
+    // }
+    for (const a of iter) yield f(a);
+  });
+
+  // const map = curry((f, iter) => {
+  //   let res = [];
+  //   iter = iter[Symbol.iterator]();
+  //   let cur;
+  //   while (!(cur = iter.next()).done) {
+  //     const a = cur.value;
+  //     res.push(a);
+  //   }
+  //   return res;
+  // })
+
+  // const map = curry((f, iter) => go(
+  //   // iter,
+  //   // L.map(f),
+  //   L.map(f, iter),
+  //   take(Infinity)
+  // ));
+
+  const map = curry(pipe(
+    L.map,
+    take(Infinity)
+  ));
+</script>
+
+## L.filter + take로 filter 만들기
+<script>
+  L.filter = curry(function *(f, iter){
+    // iter = iter[Symbol.iterator]();
+    // let cur;
+    // while (!(cur = iter.next()).done) {
+    //   const a = cur.value;
+    //   if (f(a)) {
+    //     yield a;
+    //   }
+    // }
+    for (const a of iter) {
+      yield f(a);
+    }
+  });
+
+  // const filter = curry((f, iter) => {
+  //   let res = [];
+  //   iter = iter[Symbol.iterator]();
+  //   while (!(cur = iter.next()).done) {
+  //     const a = cur.value;
+  //     if (f(a)) res.push(a);
+  //   }
+  //   return res;
+  // });
+
+  const filter = curry(pipe(L.filter, take(Infinity)));
+
+</script>

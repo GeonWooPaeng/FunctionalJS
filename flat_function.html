@@ -1,0 +1,30 @@
+<script src="function.js"></script>
+
+## L.flatten
+// 다 펼쳐서 하나의 배열로 만드는 함수
+<script>
+  
+  const isIterable = a => a && a[Symbol.iterator];
+  
+  L.flatten = function *(iter) {
+    for (const a of iter) {
+      if (ifIterable(a)) for (const b of a) yield b;
+      else yield a;
+    }
+  }
+
+  log([...[1, 2], 3, 4, ...[5, 6], ...[7, 8, 9]]);
+  var it = L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]]);
+  log([...it]);
+  log(it.next());
+  log(it.next());
+  log(it.next());
+  log(it.next());
+  log(it.next());
+  log(it.next());
+  log(take(3, L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]])));
+
+  
+  const flatten = pipe(L.flatten, take(Infinity));
+  log(flatten([1, 2], 3, 4, [5, 6], [7, 8, 9]));
+</script>
