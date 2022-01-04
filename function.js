@@ -37,3 +37,7 @@ const pipe =
   (f, ...fs) =>
   (...as) =>
     go(f(...as), ...fs);
+
+
+
+    

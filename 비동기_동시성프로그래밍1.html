@@ -1,0 +1,123 @@
+<script src="function.js"></script>
+
+# Promise
+
+## 일급
+<script>
+  function add10(a, callback) {
+    setTimeout(() => callback(a + 10), 100);
+  }
+
+  //callback 함수를 100ms이후에 실행
+  add10(5, res => {
+    add10(res, res => {
+      add10(res, res => {
+        log(res);
+      })
+    })
+  });
+
+  //Promise가 끝났다는 것을 resolve함수가 알려준다.
+  function add20(a) {
+    return new Promise(resolve => setTimeout(() => resolve(a + 20), 100));
+  }
+
+  //add20끝난후 .then 출력
+  add20(5)
+    .then(add20)
+    .then(add20)
+    .then(log);
+</script>
+
+//Promise 와 callback의 차이점
+// 일급으로 비동기 상황을 일급으로 다룬다.
+// Promise는 Promise 란는 class를 통해 instance를 반환하는데
+// Promise라는 값은 대기, 성공, 실패를 다루는 일급 값으로 이루어져있다.
+// (일급: 함수를 다른 변수와 동일하게 다루는 언어)
+<script>
+  //callback function
+  function add10(a, callback) {
+    setTimeout(() => callback(a + 10), 100);
+  }
+
+  var a = add10(5, res => {
+    add10(res, res => {
+      add10(res, res => {
+        log(res);
+      });
+    });
+  });
+
+  //Promise
+  function add20(a) {
+    return new Promise(resolve => setTimeout(() => resolve(a + 20), 100));
+  }
+
+  var b = add20(5)
+    .then(add20)
+    .then(add20)
+    .then(log);
+
+  log(a); //undefined
+  log(b); //Promise
+</script>
+
+## 일급 활용
+<script>
+
+  const delay100 = a => new Promise(resolve => setTimeout(() => resolve(a), 100));
+
+  //go1이 잘동작하려면
+  // f: 동기적 동작 함수, a: 동기적 으로 알수 있는 값
+  // => Promise 가 아닌 값이 들어와야 값이 잘 적용된다.
+  const go1 = (a, f) => f(a);
+  const add5 = a => a + 5;
+  
+  // log(go1(10, add5));
+  // log(go1(Promise.resolve(10), add5)); //정상적으로 잘 동작 X
+  log(go1(delay100(10), add5)); // 잘 동작 X
+
+  // go1이 잘 Promise에도 잘 동작하게 만들어 주기
+  const go1 = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+
+  var r = go1(10, add5);
+  log(r);
+
+  var r2 = go1(delay100(10), add5);
+  r2.then(log);
+
+  const n1 = 10;
+  log(go1(go1(n1, add5), log));
+
+  const n2 = delay100(10);
+  log(go1(go1(n2, add5), log));
+
+</script>
+
+## Composition
+<script type="module">
+  // f . g (함수 합성)
+  // f(g(x))
+  // 모나드: 상황에 따라 안전하게 합성하기 위한 것
+  //  - 합칠 수 있는 연산을 정의하고 추상화기 위해 쓴다.
+
+  const g = a => a + 1;
+  const f = a => a * a;
+  log(f(g(1)));
+  log(f(g()));
+
+  log(Array.of(1).map(g).map(f).forEach(r => log(r)));
+  log([].map(g).map(f).forEach(r => log(r))); //효과를 일으키지 않는다.]
+
+  // Promise: 구현체 중에 비동기적으로 일어나는 상황을 안전하게 합성하는 것
+  // 값이 있거나 없거나의 관점이 아니라 비동기(대기가 있는) 상황에서 안전하게 하려는 합성
+
+  Promise.resolve(1).then(g).then(f).then(r => log(r));
+  Promise.resolve().then(g).then(f).then(r => log(r));
+  new Promise(resolve => 
+    setTimeout(() => resolve(2), 100))
+    .then(g).then(f).then(r => log(r));
+</script>
+
+## Kleisli Composition
+<script></script>
