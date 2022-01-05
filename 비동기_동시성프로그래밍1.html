@@ -34,6 +34,7 @@
 // Promise는 Promise 란는 class를 통해 instance를 반환하는데
 // Promise라는 값은 대기, 성공, 실패를 다루는 일급 값으로 이루어져있다.
 // (일급: 함수를 다른 변수와 동일하게 다루는 언어)
+
 <script>
   //callback function
   function add10(a, callback) {
@@ -107,7 +108,7 @@
   log(f(g()));
 
   log(Array.of(1).map(g).map(f).forEach(r => log(r)));
-  log([].map(g).map(f).forEach(r => log(r))); //효과를 일으키지 않는다.]
+  log([].map(g).map(f).forEach(r => log(r))); //효과를 일으키지 않는다.
 
   // Promise: 구현체 중에 비동기적으로 일어나는 상황을 안전하게 합성하는 것
   // 값이 있거나 없거나의 관점이 아니라 비동기(대기가 있는) 상황에서 안전하게 하려는 합성
@@ -120,4 +121,57 @@
 </script>
 
 ## Kleisli Composition
-<script></script>
+// 오류가 있을 수 있는 상황에서 함수 합성을 안전하게 하는 방법
+<script type="module">
+  // f . g
+  // f(g(x)) = f(g(x))
+  // 만약 g에서 에러가 났을 때 f(g(x)) = g(x)이 만족 되었을 떄
+
+  var users = [
+    { id: 1, name: 'aa' },
+    { id: 2, name: 'bb' },
+    { id: 3, name: 'cc'}
+  ];
+
+  const getUserById = id =>
+    find(u => u.id == id, users) || Promise.reject("없어요!!");
+
+  const f = ({name}) => name;
+  const g = getUserById;
+  // const fg = id => f(g(id));
+  
+  // log(fg(2));
+
+  const r = fg(2);
+  users.pop();
+  users.pop();
+
+  // log(r); // pop()으로 인해 error
+
+  const fg = id => Promise.resolve(id).then(g).then(f).catch(a => a);
+
+  fg(2).then(log);
+</script>
+
+##go, pipe, reduce에서 비동기 제어
+<script>
+  go(Promise.resolve(1),
+    a => a + 10,
+    // a => Promise.resolve(a + 100),
+    a => Promise.reject('error ~'),
+    a => console.log('~~~~~'),
+    a => a + 1000,
+    log).catch(a => console.log(a));
+
+</script>
+
+## Promise.then의 중요한 규칙
+// then에서 결과를 꺼내었을 때 Promise가 아니어야 한다.
+// Promise가 아무리 중첩되어 있다고 해도 then을 통해 Promise 안쪽에 있는 값을 한번에 뽑아낼 수 있다.
+<script>
+  Promise.resolve(Promise.resolve(Promise.resolve(1))).then(log);
+
+  new Promise(resolve => resolve(new Promise(resolve => resolve(1)))).then(log);
+
+</script>
+
