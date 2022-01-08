@@ -1,0 +1,112 @@
+<script src="function.js"></script>
+
+
+## 지연된 함수열을 병렬적으로 평가하기 - C.reduce, C.take
+<script>
+  const C = {};
+   
+  //중간에 나오는 error들을 중간에 나오지 않게 하는 방법
+  function noop() {}
+  const catchNoop = arr => (arr.forEach(a => a instanceof Promise ? a.catch(noop) : a), arr);
+  
+  // 병렬적으로 만들기
+  C.reduce = curry((f, acc, iter) => {
+    // const iter2 = iter ? [...iter] : [...acc];
+    // iter2.forEach(a => a.catch(noop));
+    const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+    return iter ?
+      reduce(f, acc, iter2) :
+      reduce(f, iter2);
+  })
+
+  C.take = curry((l, iter) => take(l, catchNoop([...iter])));
+
+  // const delay500 = a => new Promise(resolve =>
+  //   setTimeout(() => resolve(a), 500));
+
+  const delay1000 = a => new Promise(resolve => {
+    console.log('hi!!');
+    setTimeout(() => resolve(a), 1000);
+  })
+  // L.map, L.filter은 함수를 대기해 놓은 상태(지연성)이고
+  // reduce에서 실행을 하는 것
+  go([1, 2, 3, 4, 5],
+    L.map(a => delay500(a * a)),
+    L.filter(a => a % 2),
+    reduce(add),
+    log);
+
+  // L.map에서 모두 실행, L.filter에서 모두 실행
+  // 그후 C.reduce에서 2개 모두 실행한 것을 바탕으로 결과 도출
+  console.time('');
+  go([1, 2, 3, 4, 5],
+    L.map(a => delay1000(a * a)),
+    L.filter(a => a % 2),
+    C.reduce(add),
+    log,
+    _ => console.timeEnd(''));
+  </script>
+
+## 즉시 병렬적으로 평가하기 - C.map, C.filter
+<script>
+  //특정함수에서만 병렬적으로 평가하고 나머지는 동기적 평가하겠다.
+  C.takeAll = C.take(Infinity);
+
+  C.map = curry(pipe(L.map, C.takeAll));
+
+  C.filter = curry(pipe(L.filter, C.takeAll));
+
+  C.map(a => delay1000(a * a), [1, 2, 3, 4]).then(log);
+  C.filter(a => delay1000(a % 2), [1, 2, 3, 4]).then(log);
+</script>
+
+## 즉시, 지연, Promise, 병렬적 조합하기
+<script>
+  //꼼꼼히 일일이 평가하는 방법(즉시)
+  //const delay500 = a => a;
+  const delay500 = (a, name) => new Promise(resolve => {
+    console.log(`${name}: ${a}`);
+    setTimeout(() => resolve(a), 500);
+  });
+
+  console.time('');
+  go([1, 2, 3, 4, 5, 6, 7],
+    map(a => delay500(a * a, 'map 1')),
+    filter(a => delay500(a % 2, 'filter 2')),
+    map(a => delay500(a + 1, 'map 3')),
+    take(2),
+    log,
+    _ => console.timeEnd(''));
+    
+  //지연 평가
+  console.time('');
+  go([1, 2, 3, 4, 5, 6, 7],
+    L.map(a => delay500(a * a, 'map 1')),
+    L.filter(a => delay500(a % 2, 'filter 2')),
+    L.map(a => delay500(a + 1, 'map 3')),
+    take(2),
+    log,
+    _ => console.timeEnd(''));
+    
+  //특정 부분 병렬 평가 
+  //C.map만 병렬 실행
+  console.time('');
+  go([1, 2, 3, 4, 5, 6, 7],
+    C.map(a => delay500(a * a, 'map 1')),
+    L.filter(a => delay500(a % 2, 'filter 2')),
+    L.map(a => delay500(a + 1, 'map 3')),
+    take(2),
+    log,
+    _ => console.timeEnd(''));
+    
+  //L.map과 C.filter를 병렬적으로 실행
+  console.time('');
+  go([1, 2, 3, 4, 5, 6, 7],
+    L.map(a => delay500(a * a, 'map 1')),
+    C.filter(a => delay500(a % 2, 'filter 2')),
+    L.map(a => delay500(a + 1, 'map 3')),
+    take(2),
+    log,
+    _ => console.timeEnd(''));
+
+</script>
