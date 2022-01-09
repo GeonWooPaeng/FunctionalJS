@@ -11,12 +11,15 @@
   
   // 병렬적으로 만들기
   C.reduce = curry((f, acc, iter) => {
-    // const iter2 = iter ? [...iter] : [...acc];
-    // iter2.forEach(a => a.catch(noop));
-    const iter2 = catchNoop(iter ? [...iter] : [...acc]);
-    return iter ?
-      reduce(f, acc, iter2) :
-      reduce(f, iter2);
+    // // const iter2 = iter ? [...iter] : [...acc];
+    // // iter2.forEach(a => a.catch(noop));
+    // const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+    // return iter ?
+    //   reduce(f, acc, iter2) :
+    //   reduce(f, iter2);
+    iter ? 
+      reduce(f, acc, catchNoop([...iter])) :
+      reduce(f, catchNoop([...acc]));
   })
 
   C.take = curry((l, iter) => take(l, catchNoop([...iter])));
