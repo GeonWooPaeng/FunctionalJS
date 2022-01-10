@@ -1,0 +1,37 @@
+<script src="../lib/fx.js"></script>
+
+## async/await
+
+<script>
+  //Promise를 return 해야 await를 할 수 있다.
+  function delay(time) {
+    return new Promise(resolve => setTimeout(() => resolve(), time));
+  }
+  
+  function delayIdentity(a) {
+    await delay(1000);
+    return a;
+  }
+  async function f1() {
+    //async 함수는 Promise를 사용하지 않더라도 Promise를 return 한다.
+    const a = await delayIdentity(10);
+    const b = await delayIdentity(5);
+
+    // log(a + b);
+    return a + b;
+  }
+
+  const pa = Promise.resolve(10);
+
+  (async () => {
+    log(await pa);
+  })();
+  // f1();
+  // f1().then(log);
+  // go(f1(), log);
+
+  //즉시 실행 함수
+  // (async () => {
+  //   log(await f1());
+  // }) ();
+</script>

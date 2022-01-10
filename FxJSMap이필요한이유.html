@@ -1,0 +1,48 @@
+## QnA. Array.prototype.map이 있는데 왜 FxJS의 map 함수가 필요한지?
+
+<script>
+    async function delayI(a) {
+        return new Promise(resolve => setTimeout(() => resolve(a), 100));
+    }
+
+    function f2() {
+        const list = [1, 2, 3, 4];
+        const res = list.map(a => delayI(a * a));
+        log(res);
+    }
+    f2(); //Promise 출력
+    
+    async function f2() {
+        const list = [1, 2, 3, 4];
+        //temp에 Promise이 들어있는 array를 주었기 때문에 정확히 출력X
+        const temp = list.map(async a => await delayI(a * a));
+        log(temp);
+        const res = await temp;
+        log(res);
+    }
+    // 안되는 이유
+    //
+    f3(); // Promise 출력
+
+    async function f3() {
+        const list = [1, 2, 3, 4];
+        const temp = map(a => delayI(a * a), list);
+        log(temp);
+        const res = await temp;
+        log(res);
+    }
+    f3();
+
+    // async function f4() {
+        function f4() {
+        const list = [1, 2, 3, 4];
+        // const res = await map(a => delayI(a * a), list);
+        // log(res);
+        // return res;
+        return map(a => delayI(a * a), list);
+    }
+    f4().then(log);
+    (async () => {
+        log(await f4());
+    })();
+</script>
