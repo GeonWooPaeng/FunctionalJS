@@ -1,0 +1,64 @@
+## QnA. 동기 상황에서 에러 핸들링은 어떻게 해야 하는가?
+<script>
+  function f7(list) {
+    // return (list || [])
+    //   .map(a => a + 10)
+    //   .filter(a => a % 2)
+    //   .slice(0, 2);
+    try {
+      return list
+        .map(a => JSON.parse(a))
+        .filter(a => a % 2)
+        .slice(0, 2);
+    } catch (e) {
+      log(e);
+      return [];
+    }
+  }
+  log(f7());
+</script>
+
+## QnA. 비동기 상황에서 에러 핸들링은 어떻게 해야 하는가?
+<script>
+  // Promise를 잘 제어하지 못하기 때문에 에러 핸들링이 잘되지 않습니다.
+  async function f8(list) {
+    try {
+      return await list
+        .map(async a => await new Promise(resolve => {
+          resolve(JSON.parse(a));
+        }))
+        .filter(a => a % 2)
+        .slice(0, 2);
+    } catch(e) {
+      log(e, '-----------');
+      return [];
+    }
+  }
+  f8(['0', '1', '2', '{']).then(log).catch(e => {
+    log('에러 핸들링 하겠다.');
+  })
+</script>
+
+## QnA, 동기/비동기 에러 핸들링에서의 파이프라인의 이점은?
+<script>
+  //함수들이 잘 연결되어진 함수이고 go의 값이 Promise인 경우 catch로 에러 핸들링 된다.
+
+  async function f9(list) {
+    try {
+      return await go(
+        list,
+        map(a => new Promise(resolve => {
+          resolve(JSON.parse(a));
+        })),
+        filter(a => a % 2),
+        take(2)
+      );
+    } catch (e) {
+      return [];
+    }
+  }
+  f9(['0', '1', '2', '{']).then(a => log(a, 'f9')).catch(e => {
+    log('에러 핸들링 하겠다.', e);
+  })
+
+</script>
